@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bản đồ xe buýt Quận Gò Vấp</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'leaflet/leaflet.css' %}" />
+    <style>
+        #map { height: 600px; width: 100%; }
+        .locate-button {
+            margin: 10px 0;
+            padding: 5px 10px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Bản đồ các tuyến xe buýt ở Quận Gò Vấp</h1>
+    <button class="locate-button" onclick="locateUser()">Vị trí của tôi</button>
+    <div id="map"></div>
+
+    <script src="{% static 'leaflet/leaflet.js' %}"></script>
+    <script>
+        // Định nghĩa hàm staticPath và gộp dữ liệu vào window.mapData
+        var staticPath = function(path) {
+            return "{% static '' %}" + path;
+        };
+        window.mapData = {
+            stopsData: {{ stops_data|safe }},
+            staticUrl: staticPath
+        };
+        console.log('Map Data from HTML:', window.mapData.stopsData); // Debug
+    </script>
+    <script src="{% static 'js/map.js' %}"></script>
+</body>
+</html>
