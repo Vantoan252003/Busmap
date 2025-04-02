@@ -1,4 +1,4 @@
-Stop_ID,Stop_Name,Latitude,Longitude,Route_Number,Address,Additional_Info
+﻿Stop_ID,Stop_Name,Latitude,Longitude,Route_Number,Address,Additional_Info
 366459518,UBND Phường 17,10.8384347,106.6794039,Unknown,,platform
 2593665743,Công ty Đồng Tâm,10.8419697,106.6434822,Unknown,,yes
 3167039162,Đầu Công viên Gia Định,10.8131373,106.6779114,Unknown,,platform
