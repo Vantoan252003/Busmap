@@ -2,31 +2,167 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bản đồ xe buýt Quận Gò Vấp</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'leaflet/leaflet.css' %}" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/tomickigrzegorz/autocomplete@1.8.6/dist/css/autocomplete.min.css" />
+    <script src="{% static 'leaflet/leaflet.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/gh/tomickigrzegorz/autocomplete@1.8.6/dist/js/autocomplete.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.fullscreen@2.4.0/dist/leaflet.fullscreen.css" />
+    <script src="https://unpkg.com/leaflet.fullscreen@2.4.0/dist/Leaflet.fullscreen.min.js"></script>
     <style>
-        #map { height: 600px; width: 100%; }
-        .locate-button {
-            margin: 10px 0;
-            padding: 5px 10px;
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            padding: 20px 0;
+            margin: 0;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .map-container {
+            position: relative;
+            width: 90%;
+            max-width: 1200px;
+            margin: 20px auto;
+            box-shadow: 0 4px 15px rgba(235, 12, 12, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            background-color: #fff;
+        }
+        #map {
+            height: 600px;
+            width: 100%;
+            border-radius: 10px;
+        }
+        .search-container {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+        #search {
+            width: 350px;
+            padding: 12px;
             font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 25px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            outline: none;
+            background-color: #fff;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        #search:focus {
+            border-color: #007bff;
+            box-shadow: 0 2px 12px rgba(0, 123, 255, 0.3);
+        }
+        .locate-button {
+            position: absolute;
+            top: 20px; 
+            right: 20px;
+            z-index: 1000;
+            padding: 10px 15px;
+            font-size: 16px;
+            background-color:rgb(238, 12, 12);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        .locate-button:hover {
+            background-color: #218838;
+            transform: scale(1.05);
+        }
+        .fullscreen-button {
+            position: absolute;
+            top: 80px;
+            left: 8px;
+            z-index: 1000;
+            padding: 10px 15px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        .fullscreen-button:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+        @media (max-width: 768px) {
+            .fullscreen-button {
+                top: 100px; 
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+        }
+        .leaflet-popup-content-wrapper {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        .leaflet-popup-content {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.6;
+            padding: 5px;
+        }
+        .leaflet-popup-tip {
+            background-color: #fff;
+        }
+        .leaflet-control-attribution {
+            font-size: 12px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 2px 5px;
+        }
+        @media (max-width: 768px) {
+            .map-container {
+                width: 95%;
+            }
+            #search {
+                width: 250px;
+            }
+            .locate-button {
+                top: 60px; 
+                padding: 8px 12px;
+                font-size: 14px;
+            }
         }
     </style>
 </head>
 <body>
     <h1>Bản đồ các tuyến xe buýt ở Quận Gò Vấp</h1>
-    <button class="locate-button" onclick="locateUser()">Vị trí của tôi</button>
-    <div id="map"></div>
-
-    <script src="{% static 'leaflet/leaflet.js' %}"></script>
+    <div class="map-container">
+        <div class="search-container">
+            <input type="text" autocomplete="off" id="search" placeholder="Nhập địa chỉ hoặc tên thành phố" />
+        </div>
+        <button class="locate-button" onclick="locateUser()">Vị trí của tôi</button>
+        <button class="fullscreen-button" onclick="toggleFullscreen()">[]</button>
+        <div id="map"></div>
+    </div>
     <script>
         // Định nghĩa hàm staticPath và gộp dữ liệu vào window.mapData
         var staticPath = function(path) {
             return "{% static '' %}" + path;
         };
         window.mapData = {
-            stopsData: {{ stops_data|safe }},
+            stopsData: {{ stops_data|safe|default:'[]' }},
             staticUrl: staticPath
         };
         console.log('Map Data from HTML:', window.mapData.stopsData); // Debug
