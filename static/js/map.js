@@ -87,51 +87,36 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Hàm fetch với timeout và retry
-    async function fetchWithRetry(url, options, retries = 3, timeout = 10000) {
-        for (let i = 0; i < retries; i++) {
-            try {
-                const controller = new AbortController();
-                const id = setTimeout(() => controller.abort(), timeout);
-                const response = await fetch(url, {
-                    ...options,
-                    signal: controller.signal
-                });
-                clearTimeout(id);
+    // Tìm kiếm địa chỉ với OpenCage API
+    function searchAddress(query) {
+        const apiKey = '3074843eec1148f5a9a501822f6af088'; // Thay bằng API key của bạn
+        const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(query)}&key=${apiKey}&limit=1`;
+        fetch(url)
+            .then(response => {
+                console.log(`Search request to ${url} - Status: ${response.status}`);
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
-                return await response.json();
-            } catch (error) {
-                if (i === retries - 1) throw error; // Nếu đã thử hết số lần, ném lỗi
-                console.warn(`Retrying fetch (${i + 1}/${retries}) due to error: ${error.message}`);
-                await new Promise(resolve => setTimeout(resolve, 2000)); // Chờ 2 giây trước khi thử lại
-            }
-        }
-    }
+                return response.json();
+            })
+            .then(data => {
+                if (data && data.results && data.results.length > 0) {
+                    var lat = data.results[0].geometry.lat;
+                    var lng = data.results[0].geometry.lng;
+                    var displayName = data.results[0].formatted;
 
-    // Tìm kiếm địa chỉ với OpenCage
-    async function searchAddress(query) {
-        const apiKey = 'your-opencage-api-key'; // Thay bằng API key của bạn
-        const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(query)}&key=${apiKey}&limit=1`;
-        try {
-            const data = await fetchWithRetry(url);
-            if (data && data.results && data.results.length > 0) {
-                var lat = data.results[0].geometry.lat;
-                var lon = data.results[0].geometry.lng;
-                var displayName = data.results[0].formatted;
-
-                if (searchMarker) map.removeLayer(searchMarker);
-                searchMarker = L.marker([lat, lon]).addTo(map)
-                    .bindPopup(`<b>Địa chỉ:</b> ${displayName}`).openPopup();
-                map.setView([lat, lon], 16);
-            } else {
-                alert('Không tìm thấy địa chỉ!');
-            }
-        } catch (error) {
-            console.error('Error fetching address:', error);
-            alert(`Có lỗi khi tìm kiếm địa chỉ: ${error.message}. Vui lòng kiểm tra kết nối mạng hoặc thử lại sau.`);
-        }
+                    if (searchMarker) map.removeLayer(searchMarker);
+                    searchMarker = L.marker([lat, lng]).addTo(map)
+                        .bindPopup(`<b>Địa chỉ:</b> ${displayName}`).openPopup();
+                    map.setView([lat, lng], 16);
+                } else {
+                    alert('Không tìm thấy địa chỉ!');
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching address:', error);
+                alert('Có lỗi khi tìm kiếm địa chỉ. Vui lòng kiểm tra kết nối.');
+            });
     }
 
     // Logic tìm kiếm thủ công
@@ -146,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let debounceTimeout;
     searchInput.addEventListener('input', function () {
         clearTimeout(debounceTimeout);
-        debounceTimeout = setTimeout(async () => {
+        debounceTimeout = setTimeout(() => {
             const query = this.value.trim();
             if (query.length < 2) {
                 suggestionsContainer.style.display = 'none';
@@ -154,32 +139,39 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            const apiKey = 'your-opencage-api-key'; // Thay bằng API key của bạn
+            const apiKey = '3074843eec1148f5a9a501822f6af088'; // Thay bằng API key của bạn
             const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(query)}&key=${apiKey}&limit=5`;
-            try {
-                const data = await fetchWithRetry(url);
-                suggestionsContainer.innerHTML = '';
-                if (data && data.results && data.results.length > 0) {
-                    suggestionsContainer.style.display = 'block';
-                    data.results.forEach(item => {
-                        const suggestion = document.createElement('div');
-                        suggestion.textContent = item.formatted;
-                        suggestion.addEventListener('click', () => {
-                            searchAddress(item.formatted);
-                            suggestionsContainer.style.display = 'none';
-                            searchInput.value = item.formatted;
+            fetch(url)
+                .then(response => {
+                    console.log(`Request to ${url} - Status: ${response.status}`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    suggestionsContainer.innerHTML = '';
+                    if (data && data.results && data.results.length > 0) {
+                        suggestionsContainer.style.display = 'block';
+                        data.results.forEach(item => {
+                            const suggestion = document.createElement('div');
+                            suggestion.textContent = item.formatted;
+                            suggestion.addEventListener('click', () => {
+                                searchAddress(item.formatted);
+                                suggestionsContainer.style.display = 'none';
+                                searchInput.value = item.formatted;
+                            });
+                            suggestionsContainer.appendChild(suggestion);
                         });
-                        suggestionsContainer.appendChild(suggestion);
-                    });
-                } else {
+                    } else {
+                        suggestionsContainer.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching suggestions:', error);
                     suggestionsContainer.style.display = 'none';
-                }
-            } catch (error) {
-                console.error('Error fetching suggestions:', error);
-                suggestionsContainer.style.display = 'none';
-                alert(`Có lỗi khi lấy gợi ý địa chỉ: ${error.message}. Vui lòng kiểm tra kết nối mạng hoặc thử lại sau.`);
-            }
-        }, 1000); // Chờ 1 giây trước khi gửi yêu cầu
+                });
+        }, 500); // Chờ 0.5 giây trước khi gửi yêu cầu
     });
 
     // Ẩn gợi ý khi click ra ngoài
