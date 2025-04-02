@@ -14,14 +14,54 @@ html, body {
 
 .search-container {
     position: absolute;
-    top: 60px;
-    left: 10px;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 1001;
+    width: 350px;
 }
 
 .search-container input {
-    width: 250px;
-    padding: 5px;
+    width: 100%;
+    padding: 10px 15px;
+    border-radius: 25px;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    font-size: 16px;
+    outline: none;
+    transition: box-shadow 0.3s ease;
+}
+
+.search-container input:focus {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Định dạng danh sách gợi ý thủ công */
+.suggestions {
+    position: absolute;
+    width: 100%;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1002;
+    margin-top: 5px;
+    display: none; /* Ẩn mặc định */
+}
+
+.suggestions div {
+    padding: 10px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+}
+
+.suggestions div:hover {
+    background-color: #f5f5f5;
+}
+
+.suggestions div:last-child {
+    border-bottom: none;
 }
 
 .offcanvas {
@@ -67,6 +107,16 @@ body.sidebar-active #map {
 }
 
 .leaflet-control-fullscreen a {
-    background: #fff url(https://unpkg.com/leaflet.fullscreen@2.4.0/dist/fullscreen.png) no-repeat 50% 50%;
+    background: #f50404 url(https://unpkg.com/leaflet.fullscreen@2.4.0/dist/fullscreen.png) no-repeat 50% 50%;
     background-size: 20px 20px;
+}
+
+#fullscreen-button {
+    border-radius: 5px;
+    padding: 8px 15px;
+    transition: background-color 0.3s ease;
+}
+
+#fullscreen-button:hover {
+    background-color: #0589fc;
 }
