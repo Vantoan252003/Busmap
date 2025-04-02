@@ -4,35 +4,35 @@ html, body {
     padding: 0;
     overflow: hidden;
 }
+
 #map {
     height: calc(100vh - 56px);
     width: 100%;
     transition: margin-left 0.5s;
     z-index: 0;
 }
-.sidebar {
-    width: 0;
-    height: 100%;
-    position: fixed;
-    top: 0;
-    left: 0;
-    background-color: #f1f1f1;
-    overflow-x: hidden;
-    transition: 0.5s;
-    padding-top: 60px;
-    z-index: 1000;
+
+.search-container {
+    position: absolute;
+    top: 60px;
+    left: 10px;
+    z-index: 1001;
 }
-.sidebar.active {
+
+.search-container input {
+    width: 250px;
+    padding: 5px;
+}
+
+.offcanvas {
     width: 250px;
 }
-.sidebar-content {
-    padding: 10px;
-}
+
 #sidebar-toggle {
     position: fixed;
     top: 50%;
     left: 0;
-    transform: translateY(-50%); /* Canh giữa theo chiều dọc */
+    transform: translateY(-50%);
     background-color: #333;
     color: white;
     border: none;
@@ -40,23 +40,33 @@ html, body {
     cursor: pointer;
     font-size: 20px;
     z-index: 1001;
-    border-radius: 0 5px 5px 0; /* Bo góc bên phải */
+    border-radius: 0 5px 5px 0;
 }
+
 #sidebar-toggle:hover {
     background-color: #555;
 }
+
 .route-item {
     padding: 10px;
     border-bottom: 1px solid #ddd;
     cursor: pointer;
 }
+
 .route-item:hover {
     background-color: #ddd;
 }
+
 body.sidebar-active #map {
     margin-left: 250px;
 }
+
 .navbar {
     z-index: 1000;
     padding: 5px 15px;
+}
+
+.leaflet-control-fullscreen a {
+    background: #fff url(https://unpkg.com/leaflet.fullscreen@2.4.0/dist/fullscreen.png) no-repeat 50% 50%;
+    background-size: 20px 20px;
 }
