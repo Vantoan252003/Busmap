@@ -1,26 +1,72 @@
 import json
-import pandas as pd
+import csv
+import math
 
-# Đọc file JSON
-with open('overpass.json', 'r', encoding='utf-8') as f:
-    data = json.load(f)
+# Đọc dữ liệu JSON
+# Giả sử dữ liệu JSON đã được lưu trong file 'bus_stops.json'
+# Nếu bạn có dữ liệu trực tiếp, có thể thay bằng: json_data = {...}
+with open('overpass.json', 'r', encoding='utf-8') as file:
+    json_data = json.load(file)
 
-# Trích xuất dữ liệu
-stops = []
-for element in data['elements']:
-    if element['type'] == 'node':
-        stop = {
-            'Stop_ID': element['id'],
-            'Stop_Name': element['tags'].get('name', 'Unknown'),
-            'Latitude': element['lat'],
-            'Longitude': element['lon'],
-            'Route_Number': element['tags'].get('ref', 'Unknown'),  # Số tuyến nếu có
-            'Address': '',  # Cần bổ sung thủ công
-            'Additional_Info': element['tags'].get('shelter', '') or element['tags'].get('public_transport', '') or 'Chưa có'
-        }
-        stops.append(stop)
+# Lấy danh sách các trạm từ phần "elements"
+stops = json_data['elements']
 
-# Lưu thành CSV
-df = pd.DataFrame(stops)
-df.to_csv('bus_stops_govap.csv', index=False, encoding='utf-8-sig')
-print("Dữ liệu đã được lưu vào bus_stops_govap.csv")
+# Định nghĩa các cột cho file CSV
+csv_columns = [
+    'Stop_ID',
+    'Stop_Name',
+    'Latitude',
+    'Longitude',
+    'Route_Number',
+    'Address',
+    'Additional_Info'
+]
+
+# Chuyển dữ liệu thành danh sách các dòng cho CSV
+csv_data = []
+for stop in stops:
+    # Kiểm tra và xử lý các giá trị
+    stop_id = stop.get('id', '')
+    
+    # Lấy tên trạm từ tags.name, nếu không có thì để trống
+    stop_name = stop.get('tags', {}).get('name', '')
+    
+    # Lấy Latitude và Longitude, kiểm tra NaN
+    latitude = stop.get('lat', 0)
+    if isinstance(latitude, float) and math.isnan(latitude):
+        latitude = 0  # Thay NaN bằng 0
+    longitude = stop.get('lon', 0)
+    if isinstance(longitude, float) and math.isnan(longitude):
+        longitude = 0  # Thay NaN bằng 0
+    
+    # Route_Number không có trong dữ liệu, gán mặc định là "Unknown"
+    route_number = "Unknown"
+    
+    # Address không có trong dữ liệu, để trống
+    address = ""
+    
+    # Additional_Info: Ưu tiên lấy từ tags.shelter, nếu không có thì lấy tags.public_transport
+    tags = stop.get('tags', {})
+    additional_info = tags.get('shelter', tags.get('public_transport', ''))
+    
+    # Tạo dòng dữ liệu
+    row = {
+        'Stop_ID': stop_id,
+        'Stop_Name': stop_name,
+        'Latitude': latitude,
+        'Longitude': longitude,
+        'Route_Number': route_number,
+        'Address': address,
+        'Additional_Info': additional_info
+    }
+    csv_data.append(row)
+
+# Ghi dữ liệu vào file CSV
+csv_file_path = 'bus_stops.csv'
+with open(csv_file_path, 'w', encoding='utf-8', newline='') as csvfile:
+    writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
+    writer.writeheader()
+    for row in csv_data:
+        writer.writerow(row)
+
+print(f"Đã tạo file CSV tại: {csv_file_path}")
