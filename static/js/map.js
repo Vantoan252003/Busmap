@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', function () {
             this.style.display = 'none';
         }
     });
-
+    
     // Hàm fetch với timeout và retry
     async function fetchWithRetry(url, options, retries = 3, timeout = 10000) {
         for (let i = 0; i < retries; i++) {
