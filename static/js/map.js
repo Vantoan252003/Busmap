@@ -34,7 +34,9 @@ document.addEventListener('DOMContentLoaded', function () {
     var searchMarker;
     var userLocation = null; // Lưu vị trí hiện tại của người dùng
     var routingControl = null; // Lưu đối tượng định tuyến
+    var selectedStops = []; // Lưu trữ hai trạm được chọn để tìm đường đi
 
+    // Thêm marker cho các trạm xe buýt
     function addMarkers() {
         var bounds = L.latLngBounds();
         stopsData.forEach(function (stop) {
@@ -44,6 +46,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <b>Địa chỉ:</b> ${stop.Address || 'Chưa có thông tin'}<br>
                     <b>Số tuyến:</b> ${stop.Route_Number || 'Chưa có'}<br>
                     <b>Thông tin thêm:</b> ${stop.Additional_Info || 'Chưa có thông tin'}<br>
+                    <button onclick="selectStop(${stop.Latitude}, ${stop.Longitude}, '${stop.Stop_Name}')">Chọn trạm này</button>
                     <button onclick="findRouteTo(${stop.Latitude}, ${stop.Longitude}, '${stop.Stop_Name}')">Tìm đường đến đây</button>
                 `;
                 var marker = L.marker([parseFloat(stop.Latitude), parseFloat(stop.Longitude)], { icon: busIcon })
@@ -59,55 +62,95 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    function locateUser() {
-        if (!navigator.geolocation) {
-            console.error('Geolocation is not supported by this browser.');
-            alert('Trình duyệt không hỗ trợ định vị.');
+    // Hiển thị danh sách tuyến xe trong sidebar
+    function populateRouteList() {
+        var routeList = document.getElementById('route-list');
+        var uniqueRoutes = [...new Set(stopsData.map(stop => stop.Route_Number))].filter(route => route && route !== 'Unknown');
+
+        if (uniqueRoutes.length === 0) {
+            routeList.innerHTML = '<p>Không có thông tin tuyến xe nào.</p>';
             return;
         }
 
-        map.locate({
-            setView: true,
-            enableHighAccuracy: true,
-            maxZoom: 16,
-            timeout: 100000
-        });
-
-        map.on('locationfound', function (e) {
-            console.log('Location found:', e.latlng);
-            userLocation = e.latlng; // Lưu vị trí người dùng
-            var marker = L.marker(e.latlng).bindPopup('Bạn đang ở đây :)').addTo(map);
-            var circle = L.circle(e.latlng, e.accuracy / 2, {
-                weight: 2,
-                color: 'red',
-                fillColor: 'red',
-                fillOpacity: 0.1
-            }).addTo(map);
-        });
-
-        map.on('locationerror', function (e) {
-            console.error('Location error:', e.message);
-            alert('Không thể lấy vị trí. Vui lòng cho phép truy cập vị trí hoặc kiểm tra kết nối.');
+        uniqueRoutes.forEach(function (route) {
+            var routeItem = document.createElement('div');
+            routeItem.className = 'route-item';
+            routeItem.textContent = `Tuyến ${route}`;
+            routeItem.addEventListener('click', function () {
+                // Xóa các marker cũ
+                map.eachLayer(function (layer) {
+                    if (layer instanceof L.Marker) map.removeLayer(layer);
+                });
+                // Hiển thị các trạm thuộc tuyến được chọn
+                var routeStops = stopsData.filter(stop => stop.Route_Number === route);
+                routeStops.forEach(function (stop) {
+                    var popupContent = `
+                        <b>Trạm:</b> ${stop.Stop_Name}<br>
+                        <b>Số tuyến:</b> ${stop.Route_Number}<br>
+                        <button onclick="selectStop(${stop.Latitude}, ${stop.Longitude}, '${stop.Stop_Name}')">Chọn trạm này</button>
+                    `;
+                    L.marker([parseFloat(stop.Latitude), parseFloat(stop.Longitude)], { icon: busIcon })
+                        .addTo(map)
+                        .bindPopup(popupContent);
+                });
+                // Đóng sidebar
+                var sidebar = bootstrap.Offcanvas.getInstance(document.getElementById('sidebar'));
+                sidebar.hide();
+            });
+            routeList.appendChild(routeItem);
         });
     }
 
-    // Hàm tìm đường đi từ vị trí hiện tại đến trạm xe buýt
+    // Chọn trạm để tìm đường đi giữa hai trạm
+    window.selectStop = function (lat, lon, stopName) {
+        if (selectedStops.length < 2) {
+            selectedStops.push({ lat: lat, lon: lon, name: stopName });
+            alert(`Đã chọn: ${stopName}`);
+        }
+
+        if (selectedStops.length === 2) {
+            // Xóa đường đi cũ nếu có
+            if (routingControl) {
+                map.removeControl(routingControl);
+            }
+            // Tạo đường đi giữa hai trạm
+            routingControl = L.Routing.control({
+                waypoints: [
+                    L.latLng(selectedStops[0].lat, selectedStops[0].lon),
+                    L.latLng(selectedStops[1].lat, selectedStops[1].lon)
+                ],
+                routeWhileDragging: true,
+                show: true,
+                addWaypoints: false,
+                fitSelectedRoutes: true,
+                showAlternatives: false,
+                lineOptions: {
+                    styles: [{ color: 'green', weight: 4 }]
+                },
+                createMarker: function () { return null; } // Không tạo marker mặc định
+            }).addTo(map);
+
+            alert(`Đường đi từ ${selectedStops[0].name} đến ${selectedStops[1].name} đã được hiển thị.`);
+            document.getElementById('clear-route').style.display = 'block';
+            selectedStops = []; // Reset sau khi chọn xong
+        }
+    };
+
+    // Tìm đường từ vị trí người dùng đến trạm
     window.findRouteTo = function (lat, lon, stopName) {
         if (!userLocation) {
             alert('Vui lòng tìm vị trí của bạn trước khi tìm đường!');
             return;
         }
 
-        // Xóa đường đi cũ nếu có
         if (routingControl) {
             map.removeControl(routingControl);
         }
 
-        // Tạo đường đi mới
         routingControl = L.Routing.control({
             waypoints: [
-                L.latLng(userLocation.lat, userLocation.lng), // Điểm bắt đầu: vị trí người dùng
-                L.latLng(lat, lon) // Điểm đến: trạm xe buýt
+                L.latLng(userLocation.lat, userLocation.lng),
+                L.latLng(lat, lon)
             ],
             routeWhileDragging: true,
             show: true,
@@ -117,10 +160,9 @@ document.addEventListener('DOMContentLoaded', function () {
             lineOptions: {
                 styles: [{ color: 'blue', weight: 4 }]
             },
-            createMarker: function () { return null; } // Không tạo marker mặc định
+            createMarker: function () { return null; }
         }).addTo(map);
 
-        // Hiển thị nút xóa đường đi
         document.getElementById('clear-route').style.display = 'block';
     };
 
@@ -130,30 +172,38 @@ document.addEventListener('DOMContentLoaded', function () {
             map.removeControl(routingControl);
             routingControl = null;
             this.style.display = 'none';
+            selectedStops = []; // Reset danh sách trạm đã chọn
         }
     });
 
-    // Hàm fetch với timeout và retry
-    async function fetchWithRetry(url, options, retries = 3, timeout = 10000) {
-        for (let i = 0; i < retries; i++) {
-            try {
-                const controller = new AbortController();
-                const id = setTimeout(() => controller.abort(), timeout);
-                const response = await fetch(url, {
-                    ...options,
-                    signal: controller.signal
-                });
-                clearTimeout(id);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                return await response.json();
-            } catch (error) {
-                if (i === retries - 1) throw error;
-                console.warn(`Retrying fetch (${i + 1}/${retries}) due to error: ${error.message}`);
-                await new Promise(resolve => setTimeout(resolve, 2000));
-            }
+    // Định vị người dùng
+    function locateUser() {
+        if (!navigator.geolocation) {
+            alert('Trình duyệt không hỗ trợ định vị.');
+            return;
         }
+
+        map.locate({
+            setView: true,
+            enableHighAccuracy: true,
+            maxZoom: 16,
+            timeout: 10000
+        });
+
+        map.on('locationfound', function (e) {
+            userLocation = e.latlng;
+            L.marker(e.latlng).addTo(map).bindPopup('Bạn đang ở đây :)').openPopup();
+            L.circle(e.latlng, e.accuracy / 2, {
+                weight: 2,
+                color: 'red',
+                fillColor: 'red',
+                fillOpacity: 0.1
+            }).addTo(map);
+        });
+
+        map.on('locationerror', function (e) {
+            alert('Không thể lấy vị trí: ' + e.message);
+        });
     }
 
     // Tìm kiếm địa chỉ với OpenCage API
@@ -161,8 +211,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const apiKey = '3074843eec1148f5a9a501822f6af088';
         const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(query)}&key=${apiKey}&limit=1`;
         try {
-            const data = await fetchWithRetry(url);
-            if (data && data.results && data.results.length > 0) {
+            const response = await fetch(url);
+            const data = await response.json();
+            if (data.results && data.results.length > 0) {
                 var lat = data.results[0].geometry.lat;
                 var lng = data.results[0].geometry.lng;
                 var displayName = data.results[0].formatted;
@@ -175,21 +226,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 alert('Không tìm thấy địa chỉ!');
             }
         } catch (error) {
-            console.error('Error fetching address:', error);
-            alert(`Có lỗi khi tìm kiếm địa chỉ: ${error.message}. Vui lòng kiểm tra kết nối mạng hoặc thử lại sau.`);
+            alert('Có lỗi khi tìm kiếm địa chỉ: ' + error.message);
         }
     }
 
-    // Logic tìm kiếm thủ công
+    // Logic tìm kiếm
     const searchInput = document.getElementById('search');
     const suggestionsContainer = document.getElementById('search-suggestions');
-
-    if (!searchInput || !suggestionsContainer) {
-        console.error('Search input or suggestions container not found!');
-        return;
-    }
-
     let debounceTimeout;
+
     searchInput.addEventListener('input', function () {
         clearTimeout(debounceTimeout);
         debounceTimeout = setTimeout(async () => {
@@ -203,9 +248,10 @@ document.addEventListener('DOMContentLoaded', function () {
             const apiKey = '3074843eec1148f5a9a501822f6af088';
             const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(query)}&key=${apiKey}&limit=5`;
             try {
-                const data = await fetchWithRetry(url);
+                const response = await fetch(url);
+                const data = await response.json();
                 suggestionsContainer.innerHTML = '';
-                if (data && data.results && data.results.length > 0) {
+                if (data.results && data.results.length > 0) {
                     suggestionsContainer.style.display = 'block';
                     data.results.forEach(item => {
                         const suggestion = document.createElement('div');
@@ -221,21 +267,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     suggestionsContainer.style.display = 'none';
                 }
             } catch (error) {
-                console.error('Error fetching suggestions:', error);
-                suggestionsContainer.style.display = 'none';
-                alert(`Có lỗi khi lấy gợi ý địa chỉ: ${error.message}. Vui lòng kiểm tra kết nối mạng hoặc thử lại sau.`);
+                alert('Có lỗi khi lấy gợi ý địa chỉ: ' + error.message);
             }
-        }, 500); // Chờ 0.5 giây trước khi gửi yêu cầu
+        }, 500);
     });
 
-    // Ẩn gợi ý khi click ra ngoài
     document.addEventListener('click', function (e) {
         if (!searchInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
             suggestionsContainer.style.display = 'none';
         }
     });
 
-    // Tìm kiếm khi nhấn Enter
     searchInput.addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
             searchAddress(this.value);
@@ -243,35 +285,33 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Hàm toàn màn hình thủ công
+    // Toàn màn hình
     window.toggleFullscreen = function () {
         var mapContainer = document.querySelector('.map-container');
         if (!document.fullscreenElement) {
             mapContainer.requestFullscreen().then(() => {
                 map.invalidateSize();
                 document.getElementById('fullscreen-button').textContent = 'Thoát toàn màn hình';
-            }).catch(err => {
-                console.error('Error entering fullscreen:', err);
-                alert('Không thể chuyển sang toàn màn hình.');
-            });
+            }).catch(err => alert('Không thể chuyển sang toàn màn hình: ' + err));
         } else {
             document.exitFullscreen().then(() => {
                 map.invalidateSize();
                 document.getElementById('fullscreen-button').textContent = 'Toàn màn hình';
-            }).catch(err => console.error('Error exiting fullscreen:', err));
+            }).catch(err => console.error(err));
         }
     };
 
-    // Gọi các hàm
-    if (stopsData.length) {
-        addMarkers();
-    }
-
-    // Sử dụng Bootstrap để toggle sidebar
+    // Toggle sidebar
     var sidebar = new bootstrap.Offcanvas(document.getElementById('sidebar'), { backdrop: false });
     document.getElementById('sidebar-toggle').addEventListener('click', function () {
         sidebar.toggle();
     });
+
+    // Gọi các hàm khởi tạo
+    if (stopsData.length) {
+        addMarkers();
+        populateRouteList(); // Hiển thị danh sách tuyến xe trong sidebar
+    }
 
     window.locateUser = locateUser;
 });
