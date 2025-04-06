@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var searchMarker;
     var userLocation = null; // Lưu vị trí hiện tại của người dùng
+    var searchLocation = null; // Lưu vị trí từ thanh tìm kiếm
     var routingControl = null; // Lưu đối tượng định tuyến
     var selectedStops = []; // Lưu trữ hai trạm được chọn để tìm đường đi
 
@@ -77,23 +78,21 @@ document.addEventListener('DOMContentLoaded', function () {
             routeItem.className = 'route-item';
             routeItem.textContent = `Tuyến ${route}`;
             routeItem.addEventListener('click', function () {
-                // Xóa các marker cũ
                 map.eachLayer(function (layer) {
                     if (layer instanceof L.Marker) map.removeLayer(layer);
                 });
-                // Hiển thị các trạm thuộc tuyến được chọn
                 var routeStops = stopsData.filter(stop => stop.Route_Number === route);
                 routeStops.forEach(function (stop) {
                     var popupContent = `
                         <b>Trạm:</b> ${stop.Stop_Name}<br>
                         <b>Số tuyến:</b> ${stop.Route_Number}<br>
                         <button onclick="selectStop(${stop.Latitude}, ${stop.Longitude}, '${stop.Stop_Name}')">Chọn trạm này</button>
+                        <button onclick="findRouteTo(${stop.Latitude}, ${stop.Longitude}, '${stop.Stop_Name}')">Tìm đường đến đây</button>
                     `;
                     L.marker([parseFloat(stop.Latitude), parseFloat(stop.Longitude)], { icon: busIcon })
                         .addTo(map)
                         .bindPopup(popupContent);
                 });
-                // Đóng sidebar
                 var sidebar = bootstrap.Offcanvas.getInstance(document.getElementById('sidebar'));
                 sidebar.hide();
             });
@@ -109,11 +108,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (selectedStops.length === 2) {
-            // Xóa đường đi cũ nếu có
             if (routingControl) {
                 map.removeControl(routingControl);
             }
-            // Tạo đường đi giữa hai trạm
             routingControl = L.Routing.control({
                 waypoints: [
                     L.latLng(selectedStops[0].lat, selectedStops[0].lon),
@@ -127,19 +124,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 lineOptions: {
                     styles: [{ color: 'green', weight: 4 }]
                 },
-                createMarker: function () { return null; } // Không tạo marker mặc định
+                createMarker: function () { return null; }
             }).addTo(map);
 
             alert(`Đường đi từ ${selectedStops[0].name} đến ${selectedStops[1].name} đã được hiển thị.`);
             document.getElementById('clear-route').style.display = 'block';
-            selectedStops = []; // Reset sau khi chọn xong
+            selectedStops = [];
         }
     };
 
-    // Tìm đường từ vị trí người dùng đến trạm
+    // Tìm đường từ vị trí người dùng hoặc vị trí tìm kiếm đến trạm
     window.findRouteTo = function (lat, lon, stopName) {
-        if (!userLocation) {
-            alert('Vui lòng tìm vị trí của bạn trước khi tìm đường!');
+        var startLocation = searchLocation || userLocation;
+        if (!startLocation) {
+            alert('Vui lòng tìm vị trí của bạn hoặc nhập địa chỉ trên thanh tìm kiếm trước khi tìm đường!');
             return;
         }
 
@@ -149,7 +147,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         routingControl = L.Routing.control({
             waypoints: [
-                L.latLng(userLocation.lat, userLocation.lng),
+                L.latLng(startLocation.lat, startLocation.lng),
                 L.latLng(lat, lon)
             ],
             routeWhileDragging: true,
@@ -172,7 +170,7 @@ document.addEventListener('DOMContentLoaded', function () {
             map.removeControl(routingControl);
             routingControl = null;
             this.style.display = 'none';
-            selectedStops = []; // Reset danh sách trạm đã chọn
+            selectedStops = [];
         }
     });
 
@@ -186,8 +184,8 @@ document.addEventListener('DOMContentLoaded', function () {
         map.locate({
             setView: true,
             enableHighAccuracy: true,
-            maxZoom: 16,
-            timeout: 10000
+            maxZoom: 64,
+            timeout: 1000000
         });
 
         map.on('locationfound', function (e) {
@@ -219,8 +217,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 var displayName = data.results[0].formatted;
 
                 if (searchMarker) map.removeLayer(searchMarker);
+                searchLocation = { lat: lat, lng: lng }; // Lưu vị trí tìm kiếm
                 searchMarker = L.marker([lat, lng]).addTo(map)
-                    .bindPopup(`<b>Địa chỉ:</b> ${displayName}`).openPopup();
+                    .bindPopup(`
+                        <b>Địa chỉ:</b> ${displayName}<br>
+                        <button onclick="startRouteFromSearch(${lat}, ${lng}, '${displayName}')">Tìm đường từ đây</button>
+                    `).openPopup();
                 map.setView([lat, lng], 16);
             } else {
                 alert('Không tìm thấy địa chỉ!');
@@ -229,6 +231,71 @@ document.addEventListener('DOMContentLoaded', function () {
             alert('Có lỗi khi tìm kiếm địa chỉ: ' + error.message);
         }
     }
+window.findRouteBetweenPoints = async function () {
+    const startInput = document.getElementById('start-point').value.trim();
+    const endInput = document.getElementById('end-point').value.trim();
+
+    console.log('Địa chỉ nhập vào - Start:', startInput, 'End:', endInput);
+
+    if (!startInput || !endInput) {
+        alert('Vui lòng nhập cả điểm bắt đầu và điểm kết thúc!');
+        return;
+    }
+
+    const apiKey = '3074843eec1148f5a9a501822f6af088';
+
+    async function getCoordinates(query) {
+        const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(query)}&key=${apiKey}&limit=5&bounds=106.5,10.5,107.0,11.0`; // Giới hạn trong TP.HCM
+        const response = await fetch(url);
+        const data = await response.json();
+        console.log('Phản hồi API cho', query, ':', data.results);
+        if (data.results && data.results.length > 0) {
+            // Chọn kết quả đầu tiên trong TP.HCM
+            const result = data.results.find(r => r.components.city === 'Ho Chi Minh City') || data.results[0];
+            return {
+                lat: result.geometry.lat,
+                lng: result.geometry.lng
+            };
+        }
+        return null;
+    }
+
+    try {
+        const startCoords = await getCoordinates(startInput);
+        const endCoords = await getCoordinates(endInput);
+
+        console.log('Tọa độ - Start:', startCoords, 'End:', endCoords);
+
+        if (!startCoords || !endCoords) {
+            alert('Không thể tìm thấy một hoặc cả hai địa điểm. Vui lòng kiểm tra lại.');
+            return;
+        }
+            if (routingControl) {
+                map.removeControl(routingControl);
+            }
+
+            routingControl = L.Routing.control({
+                waypoints: [
+                    L.latLng(startCoords.lat, startCoords.lng),
+                    L.latLng(endCoords.lat, endCoords.lng)
+                ],
+                routeWhileDragging: true,
+                show: true,
+                addWaypoints: false,
+                fitSelectedRoutes: true,
+                showAlternatives: false,
+                lineOptions: {
+                    styles: [{ color: 'purple', weight: 4 }]
+                },
+                createMarker: function () { return null; }
+            }).addTo(map);
+
+            document.getElementById('clear-route').style.display = 'block';
+            alert(`Đường đi từ "${startInput}" đến "${endInput}" đã được hiển thị.`);
+        } catch (error) {
+            alert('Có lỗi khi tìm đường: ' + error.message);
+        }
+    };
 
     // Logic tìm kiếm
     const searchInput = document.getElementById('search');
@@ -310,7 +377,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Gọi các hàm khởi tạo
     if (stopsData.length) {
         addMarkers();
-        populateRouteList(); // Hiển thị danh sách tuyến xe trong sidebar
+        populateRouteList();
     }
 
     window.locateUser = locateUser;

@@ -120,3 +120,33 @@ body.sidebar-active #map {
 #fullscreen-button:hover {
     background-color: #0589fc;
 }
+
+/* Thêm vào cuối file sidebar.css */
+.route-finder {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.route-finder h6 {
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #333;
+}
+
+.route-finder input {
+    border-radius: 5px;
+    padding: 8px;
+    font-size: 14px;
+}
+
+.route-finder button {
+    padding: 8px;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+.route-finder button:hover {
+    background-color: #28a745; /* Màu xanh đậm hơn khi hover */
+}

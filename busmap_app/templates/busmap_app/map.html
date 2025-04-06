@@ -60,6 +60,12 @@
             <div class="offcanvas-body">
                 <div id="route-list"></div>
                 <button class="btn btn-primary mt-3 w-100" onclick="locateUser()">Tìm vị trí của tôi</button>
+                <div class="route-finder mt-3">
+                    <h6>Tìm đường</h6>
+                    <input type="text" id="start-point" class="form-control mb-2" placeholder="Điểm bắt đầu">
+                    <input type="text" id="end-point" class="form-control mb-2" placeholder="Điểm kết thúc">
+                    <button class="btn btn-success w-100" onclick="findRouteBetweenPoints()">Tìm đường</button>
+                </div>
             </div>
         </div>
 
