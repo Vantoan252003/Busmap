@@ -185,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function () {
             setView: true,
             enableHighAccuracy: true,
             maxZoom: 64,
-            timeout: 1000000
+            timeout: 10000
         });
 
         map.on('locationfound', function (e) {
