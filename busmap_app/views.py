@@ -14,3 +14,5 @@ def map_view(request):
     
     # Truyền dữ liệu vào template
     return render(request, 'busmap_app/map.html', {'stops_data': json.dumps(stops_data)})
+def home (request):
+    return render(request, 'busmap_app/home.html')
