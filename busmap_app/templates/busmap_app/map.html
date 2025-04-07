@@ -87,8 +87,14 @@
                 <button class="btn btn-primary mt-3 w-100" onclick="locateUser()">Tìm vị trí của tôi</button>
                 <div class="route-finder mt-3">
                     <h6>Tìm đường</h6>
-                    <input type="text" id="start-point" class="form-control mb-2" placeholder="Điểm bắt đầu">
-                    <input type="text" id="end-point" class="form-control mb-2" placeholder="Điểm kết thúc">
+                    <div class="position-relative">
+                        <input type="text" id="start-point" class="form-control mb-2" placeholder="Điểm bắt đầu">
+                        <div id="start-suggestions" class="suggestions"></div>
+                    </div>
+                    <div class="position-relative">
+                        <input type="text" id="end-point" class="form-control mb-2" placeholder="Điểm kết thúc">
+                        <div id="end-suggestions" class="suggestions"></div>
+                    </div>
                     <button class="btn btn-success w-100" onclick="findRouteBetweenPoints()">Tìm đường</button>
                 </div>
             </div>
