@@ -217,12 +217,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 var displayName = data.results[0].formatted;
 
                 if (searchMarker) map.removeLayer(searchMarker);
-                searchLocation = { lat: lat, lng: lng }; // Lưu vị trí tìm kiếm
+                searchLocation = { lat: lat, lng: lng };
                 searchMarker = L.marker([lat, lng]).addTo(map)
-                    .bindPopup(`
-                        <b>Địa chỉ:</b> ${displayName}<br>
-                        <button onclick="startRouteFromSearch(${lat}, ${lng}, '${displayName}')">Tìm đường từ đây</button>
-                    `).openPopup();
+                    .bindPopup(`<b>Địa chỉ:</b> ${displayName}`).openPopup();
                 map.setView([lat, lng], 16);
             } else {
                 alert('Không tìm thấy địa chỉ!');
@@ -231,45 +228,157 @@ document.addEventListener('DOMContentLoaded', function () {
             alert('Có lỗi khi tìm kiếm địa chỉ: ' + error.message);
         }
     }
-window.findRouteBetweenPoints = async function () {
-    const startInput = document.getElementById('start-point').value.trim();
-    const endInput = document.getElementById('end-point').value.trim();
 
-    console.log('Địa chỉ nhập vào - Start:', startInput, 'End:', endInput);
-
-    if (!startInput || !endInput) {
-        alert('Vui lòng nhập cả điểm bắt đầu và điểm kết thúc!');
-        return;
-    }
-
-    const apiKey = '3074843eec1148f5a9a501822f6af088';
-
-    async function getCoordinates(query) {
-        const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(query)}&key=${apiKey}&limit=5&bounds=106.5,10.5,107.0,11.0`; // Giới hạn trong TP.HCM
-        const response = await fetch(url);
-        const data = await response.json();
-        console.log('Phản hồi API cho', query, ':', data.results);
-        if (data.results && data.results.length > 0) {
-            // Chọn kết quả đầu tiên trong TP.HCM
-            const result = data.results.find(r => r.components.city === 'Ho Chi Minh City') || data.results[0];
-            return {
-                lat: result.geometry.lat,
-                lng: result.geometry.lng
-            };
+    // Hàm lấy gợi ý địa chỉ từ OpenCage
+    async function fetchSuggestions(query, container, inputElement) {
+        const apiKey = '3074843eec1148f5a9a501822f6af088';
+        const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(query)}&key=${apiKey}&limit=5&bounds=106.5,10.5,107.0,11.0`;
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            container.innerHTML = '';
+            if (data.results && data.results.length > 0) {
+                container.style.display = 'block';
+                data.results.forEach(item => {
+                    const suggestion = document.createElement('div');
+                    suggestion.textContent = item.formatted;
+                    suggestion.addEventListener('click', () => {
+                        inputElement.value = item.formatted;
+                        container.style.display = 'none';
+                    });
+                    container.appendChild(suggestion);
+                });
+            } else {
+                container.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Lỗi khi lấy gợi ý:', error);
+            container.style.display = 'none';
         }
-        return null;
     }
 
-    try {
-        const startCoords = await getCoordinates(startInput);
-        const endCoords = await getCoordinates(endInput);
+    // Logic tìm kiếm chính
+    const searchInput = document.getElementById('search');
+    const suggestionsContainer = document.getElementById('search-suggestions');
+    let debounceTimeout;
 
-        console.log('Tọa độ - Start:', startCoords, 'End:', endCoords);
-
-        if (!startCoords || !endCoords) {
-            alert('Không thể tìm thấy một hoặc cả hai địa điểm. Vui lòng kiểm tra lại.');
+    searchInput.addEventListener('input', function () {
+        clearTimeout(debounceTimeout);
+        const query = this.value.trim();
+        if (query.length < 2) {
+            suggestionsContainer.style.display = 'none';
+            suggestionsContainer.innerHTML = '';
             return;
         }
+        debounceTimeout = setTimeout(() => fetchSuggestions(query, suggestionsContainer, searchInput), 500);
+    });
+
+    searchInput.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            searchAddress(this.value);
+            suggestionsContainer.style.display = 'none';
+        }
+    });
+
+    // Logic gợi ý cho "Điểm bắt đầu"
+    const startInput = document.getElementById('start-point');
+    const startSuggestions = document.getElementById('start-suggestions');
+    let startDebounceTimeout;
+
+    startInput.addEventListener('input', function () {
+        clearTimeout(startDebounceTimeout);
+        const query = this.value.trim();
+        if (query.length < 2) {
+            startSuggestions.style.display = 'none';
+            startSuggestions.innerHTML = '';
+            return;
+        }
+        startDebounceTimeout = setTimeout(() => fetchSuggestions(query, startSuggestions, startInput), 500);
+    });
+
+    startInput.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            startSuggestions.style.display = 'none';
+            findRouteBetweenPoints();
+        }
+    });
+
+    // Logic gợi ý cho "Điểm kết thúc"
+    const endInput = document.getElementById('end-point');
+    const endSuggestions = document.getElementById('end-suggestions');
+    let endDebounceTimeout;
+
+    endInput.addEventListener('input', function () {
+        clearTimeout(endDebounceTimeout);
+        const query = this.value.trim();
+        if (query.length < 2) {
+            endSuggestions.style.display = 'none';
+            endSuggestions.innerHTML = '';
+            return;
+        }
+        endDebounceTimeout = setTimeout(() => fetchSuggestions(query, endSuggestions, endInput), 500);
+    });
+
+    endInput.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            endSuggestions.style.display = 'none';
+            findRouteBetweenPoints();
+        }
+    });
+
+    // Ẩn gợi ý khi click ra ngoài
+    document.addEventListener('click', function (e) {
+        if (!searchInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+            suggestionsContainer.style.display = 'none';
+        }
+        if (!startInput.contains(e.target) && !startSuggestions.contains(e.target)) {
+            startSuggestions.style.display = 'none';
+        }
+        if (!endInput.contains(e.target) && !endSuggestions.contains(e.target)) {
+            endSuggestions.style.display = 'none';
+        }
+    });
+
+    // Hàm tìm đường giữa hai điểm
+    window.findRouteBetweenPoints = async function () {
+        const startInput = document.getElementById('start-point').value.trim();
+        const endInput = document.getElementById('end-point').value.trim();
+
+        console.log('Địa chỉ nhập vào - Start:', startInput, 'End:', endInput);
+
+        if (!startInput || !endInput) {
+            alert('Vui lòng nhập cả điểm bắt đầu và điểm kết thúc!');
+            return;
+        }
+
+        const apiKey = '3074843eec1148f5a9a501822f6af088';
+
+        async function getCoordinates(query) {
+            const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(query)}&key=${apiKey}&limit=5&bounds=106.5,10.5,107.0,11.0`;
+            const response = await fetch(url);
+            const data = await response.json();
+            console.log('Phản hồi API cho', query, ':', data.results);
+            if (data.results && data.results.length > 0) {
+                const result = data.results.find(r => r.components.city === 'Ho Chi Minh City') || data.results[0];
+                return {
+                    lat: result.geometry.lat,
+                    lng: result.geometry.lng
+                };
+            }
+            return null;
+        }
+
+        try {
+            const startCoords = await getCoordinates(startInput);
+            const endCoords = await getCoordinates(endInput);
+
+            console.log('Tọa độ - Start:', startCoords, 'End:', endCoords);
+
+            if (!startCoords || !endCoords) {
+                alert('Không thể tìm thấy một hoặc cả hai địa điểm. Vui lòng kiểm tra lại.');
+                return;
+            }
+
             if (routingControl) {
                 map.removeControl(routingControl);
             }
@@ -296,61 +405,6 @@ window.findRouteBetweenPoints = async function () {
             alert('Có lỗi khi tìm đường: ' + error.message);
         }
     };
-
-    // Logic tìm kiếm
-    const searchInput = document.getElementById('search');
-    const suggestionsContainer = document.getElementById('search-suggestions');
-    let debounceTimeout;
-
-    searchInput.addEventListener('input', function () {
-        clearTimeout(debounceTimeout);
-        debounceTimeout = setTimeout(async () => {
-            const query = this.value.trim();
-            if (query.length < 2) {
-                suggestionsContainer.style.display = 'none';
-                suggestionsContainer.innerHTML = '';
-                return;
-            }
-
-            const apiKey = '3074843eec1148f5a9a501822f6af088';
-            const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(query)}&key=${apiKey}&limit=5`;
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
-                suggestionsContainer.innerHTML = '';
-                if (data.results && data.results.length > 0) {
-                    suggestionsContainer.style.display = 'block';
-                    data.results.forEach(item => {
-                        const suggestion = document.createElement('div');
-                        suggestion.textContent = item.formatted;
-                        suggestion.addEventListener('click', () => {
-                            searchAddress(item.formatted);
-                            suggestionsContainer.style.display = 'none';
-                            searchInput.value = item.formatted;
-                        });
-                        suggestionsContainer.appendChild(suggestion);
-                    });
-                } else {
-                    suggestionsContainer.style.display = 'none';
-                }
-            } catch (error) {
-                alert('Có lỗi khi lấy gợi ý địa chỉ: ' + error.message);
-            }
-        }, 500);
-    });
-
-    document.addEventListener('click', function (e) {
-        if (!searchInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
-            suggestionsContainer.style.display = 'none';
-        }
-    });
-
-    searchInput.addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            searchAddress(this.value);
-            suggestionsContainer.style.display = 'none';
-        }
-    });
 
     // Toàn màn hình
     window.toggleFullscreen = function () {
