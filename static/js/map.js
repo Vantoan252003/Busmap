@@ -412,12 +412,12 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!document.fullscreenElement) {
             mapContainer.requestFullscreen().then(() => {
                 map.invalidateSize();
-                document.getElementById('fullscreen-button').textContent = 'Thoát toàn màn hình';
+                document.getElementById('fullscreen-button').textContent = '[ ]';
             }).catch(err => alert('Không thể chuyển sang toàn màn hình: ' + err));
         } else {
             document.exitFullscreen().then(() => {
                 map.invalidateSize();
-                document.getElementById('fullscreen-button').textContent = 'Toàn màn hình';
+                document.getElementById('fullscreen-button').textContent = '[ ]';
             }).catch(err => console.error(err));
         }
     };

@@ -108,7 +108,7 @@ body.sidebar-active #map {
 
 .leaflet-control-fullscreen a {
     background: #f50404 url(https://unpkg.com/leaflet.fullscreen@2.4.0/dist/fullscreen.png) no-repeat 50% 50%;
-    background-size: 20px 20px;
+    background-size: 10px 10px;
 }
 
 #fullscreen-button {
