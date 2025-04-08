@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var selectedStops = []; // Lưu trữ hai trạm được chọn để tìm đường đi
 
     const markers = L.layerGroup().addTo(map); // Nhóm các marker để dễ quản lý
-    const ZOOM_THRESHOLD = 17; // Ngưỡng zoom để hiển thị marker
+    const ZOOM_THRESHOLD = 16; // Ngưỡng zoom để hiển thị marker
 
     function addMarkers() {
         markers.clearLayers(); // Xóa các marker cũ
@@ -65,6 +65,34 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    function locateUser() {
+        if (!navigator.geolocation) {
+            alert('Trình duyệt không hỗ trợ định vị.');
+            return;
+        }
+
+        map.locate({ setView: true, enableHighAccuracy: true, maxZoom: 16, timeout: 10000 });
+
+        map.on('locationfound', e => {
+            userLocation = e.latlng;
+            L.marker(e.latlng).addTo(map).bindPopup('Bạn đang ở đây :)').openPopup();
+            L.circle(e.latlng, e.accuracy / 2, {
+                weight: 2,
+                color: 'red',
+                fillColor: 'red',
+                fillOpacity: 0.1
+            }).addTo(map);
+        });
+
+        map.on('locationerror', e => alert('Không thể lấy vị trí: ' + e.message));
+    }
+
+    // Cập nhật marker khi bản đồ thay đổi (zoom hoặc di chuyển)
+    map.on('moveend zoomend', addMarkers);
+
+    // Gọi lần đầu để hiển thị marker nếu phù hợp
+    addMarkers();
     // Hiển thị danh sách tuyến xe trong sidebar
     function populateRouteList() {
         var routeList = document.getElementById('route-list');
