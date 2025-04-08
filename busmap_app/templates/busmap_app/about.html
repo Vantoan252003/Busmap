@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BusMap Gò Vấp - Giới thiệu</title>
+    {% load static %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .about-hero {
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('{% static "images/bus-about.jpg" %}');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 80px 0;
+            text-align: center;
+        }
+        .team-member {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .team-member img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 15px;
+            border: 5px solid #f8f9fa;
+        }
+        .timeline {
+            position: relative;
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+        .timeline:before {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 2px;
+            margin-left: -1px;
+            background-color: #0d6efd;
+        }
+        .timeline-item {
+            position: relative;
+            margin-bottom: 50px;
+        }
+        .timeline-badge {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 50px;
+            height: 50px;
+            margin-left: -25px;
+            border-radius: 50%;
+            background-color: #0d6efd;
+            color: white;
+            text-align: center;
+            line-height: 50px;
+            z-index: 100;
+        }
+        .timeline-panel {
+            position: relative;
+            width: 46%;
+            float: left;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
+            background-color: white;
+        }
+        .timeline-item:nth-child(even) .timeline-panel {
+            float: right;
+        }
+        .timeline-item:nth-child(odd) .timeline-panel:before {
+            content: " ";
+            position: absolute;
+            top: 15px;
+            right: -15px;
+            border-top: 15px solid transparent;
+            border-left: 15px solid white;
+            border-right: 0 solid white;
+            border-bottom: 15px solid transparent;
+        }
+        .timeline-item:nth-child(even) .timeline-panel:before {
+            content: " ";
+            position: absolute;
+            top: 15px;
+            left: -15px;
+            border-top: 15px solid transparent;
+            border-right: 15px solid white;
+            border-left: 0 solid white;
+            border-bottom: 15px solid transparent;
+        }
+        footer {
+            background-color: #212529;
+            color: white;
+            padding: 40px 0;
+        }
+        .value-card {
+            height: 100%;
+            transition: transform 0.3s;
+        }
+        .value-card:hover {
+            transform: translateY(-10px);
+        }
+        .value-icon {
+            font-size: 2.5rem;
+            color: #0d6efd;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <i class="fas fa-bus"></i> BusMap Gò Vấp
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'home' %}">Trang chủ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'map_view' %}">Bản đồ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Tính năng</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{% url 'about' %}">Giới thiệu</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'contact' %}">Liên hệ</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="about-hero">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-4">Về BusMap Gò Vấp</h1>
+            <p class="lead mb-0">Tìm hiểu thêm về dự án bản đồ xe buýt cho cộng đồng</p>
+        </div>
+    </section>
+
+    <!-- Main Info Section -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 mb-4 mb-lg-0">
+                    <img src="{% static 'images/about-main.jpg' %}" alt="Về BusMap Gò Vấp" class="img-fluid rounded shadow">
+                </div>
+                <div class="col-lg-6">
+                    <h2 class="mb-4">Sứ mệnh của chúng tôi</h2>
+                    <p class="lead">BusMap Gò Vấp ra đời với mục tiêu giúp người dân và du khách tại Quận Gò Vấp dễ dàng tiếp cận và sử dụng phương tiện giao thông công cộng.</p>
+                    <p>Trong bối cảnh đô thị hóa nhanh chóng và ùn tắc giao thông ngày càng nghiêm trọng, việc khuyến khích sử dụng phương tiện công cộng trở nên cấp thiết. Dự án BusMap Gò Vấp là một phần trong nỗ lực cải thiện hệ thống giao thông công cộng, góp phần xây dựng thành phố thông minh và bền vững.</p>
+                    <p>Chúng tôi cam kết cung cấp thông tin chính xác, cập nhật và dễ tiếp cận về hệ thống xe buýt, giúp người dân có thể lên kế hoạch di chuyển một cách hiệu quả và tiết kiệm thời gian.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Values Section -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <h2 class="text-center mb-5">Giá trị cốt lõi</h2>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card value-card shadow h-100">
+                        <div class="card-body text-center p-4">
+                            <i class="fas fa-check-circle value-icon"></i>
+                            <h3>Chất lượng</h3>
+                            <p>Cam kết cung cấp thông tin chính xác và dịch vụ chất lượng cao cho người dùng.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card value-card shadow h-100">
+                        <div class="card-body text-center p-4">
+                            <i class="fas fa-users value-icon"></i>
+                            <h3>Cộng đồng</h3>
+                            <p>Xây dựng giải pháp dựa trên nhu cầu thực tế của cộng đồng và phục vụ lợi ích chung.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card value-card shadow h-100">
+                        <div class="card-body text-center p-4">
+                            <i class="fas fa-leaf value-icon"></i>
+                            <h3>Bền vững</h3>
+                            <p>Đóng góp vào việc phát triển giao thông xanh và bền vững cho thành phố.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+   
+    <!-- Team Section -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <h2 class="text-center mb-5">Đội ngũ của chúng tôi</h2>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="team-member">
+                        <img src="{% static 'images/team-member-1.jpg' %}" alt="Thành viên 1">
+                        <h4>Nguyễn Văn An</h4>
+                        <p class="text-muted">Giám đốc Dự án</p>
+                        <p>Chuyên gia với hơn 10 năm kinh nghiệm trong lĩnh vực giao thông công cộng.</p>
+                        <div class="social-icons">
+                            <a href="#" class="text-primary me-2"><i class="fab fa-linkedin"></i></a>
+                            <a href="#" class="text-info me-2"><i class="fab fa-twitter"></i></a>
+                            <a href="#" class="text-dark"><i class="fab fa-github"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="team-member">
+                        <img src="{% static 'images/team-member-2.jpg' %}" alt="Thành viên 2">
+                        <h4>Trần Thị Bình</h4>
+                        <p class="text-muted">Trưởng nhóm Kỹ thuật</p>
+                        <p>Chuyên gia GIS với kinh nghiệm phát triển các hệ thống bản đồ tương tác.</p>
+                        <div class="social-icons">
+                            <a href="#" class="text-primary me-2"><i class="fab fa-linkedin"></i></a>
+                            <a href="#" class="text-info me-2"><i class="fab fa-twitter"></i></a>
+                            <a href="#" class="text-dark"><i class="fab fa-github"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="team-member">
+                        <img src="{% static 'images/team-member-3.jpg' %}" alt="Thành viên 3">
+                        <h4>Lê Văn Cường</h4>
+                        <p class="text-muted">Quản lý Dữ liệu</p>
+                        <p>Phụ trách thu thập và cập nhật dữ liệu về các tuyến xe buýt và trạm dừng.</p>
+                        <div class="social-icons">
+                            <a href="#" class="text-primary me-2"><i class="fab fa-linkedin"></i></a>
+                            <a href="#" class="text-info me-2"><i class="fab fa-twitter"></i></a>
+                            <a href="#" class="text-dark"><i class="fab fa-github"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Partners Section -->
+    <section class="py-5">
+        <div class="container">
+            <h2 class="text-center mb-5">Đối tác của chúng tôi</h2>
+            <div class="row align-items-center justify-content-center">
+                <div class="col-md-3 col-6 mb-4">
+                    <img src="{% static 'images/partner-1.png' %}" alt="Đối tác 1" class="img-fluid">
+                </div>
+                <div class="col-md-3 col-6 mb-4">
+                    <img src="{% static 'images/partner-2.png' %}" alt="Đối tác 2" class="img-fluid">
+                </div>
+                <div class="col-md-3 col-6 mb-4">
+                    <img src="{% static 'images/partner-3.png' %}" alt="Đối tác 3" class="img-fluid">
+                </div>
+                <div class="col-md-3 col-6 mb-4">
+                    <img src="{% static 'images/partner-4.png' %}" alt="Đối tác 4" class="img-fluid">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="py-5 text-white" style="background-color: #0d6efd;">
+        <div class="container text-center">
+            <h2 class="mb-4">Sẵn sàng trải nghiệm BusMap Gò Vấp?</h2>
+            <p class="lead mb-4">Hãy bắt đầu hành trình của bạn với hệ thống bản đồ xe buýt thông minh ngay hôm nay</p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="{% url 'map_view' %}" class="btn btn-light btn-lg">Mở bản đồ</a>
+                <a href="{% url 'contact' %}" class="btn btn-outline-light btn-lg">Liên hệ với chúng tôi</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4 mb-lg-0">
+                    <h5>BusMap Gò Vấp</h5>
+                    <p>Ứng dụng bản đồ xe buýt thông minh tại Quận Gò Vấp, TP. Hồ Chí Minh</p>
+                </div>
+                <div class="col-lg-4 mb-4 mb-lg-0">
+                    <h5>Liên kết nhanh</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'home' %}" class="text-white text-decoration-none">Trang chủ</a></li>
+                        <li><a href="{% url 'map_view' %}" class="text-white text-decoration-none">Bản đồ</a></li>
+                        <li><a href="{% url 'home' %}#features" class="text-white text-decoration-none">Tính năng</a></li>
+                        <li><a href="{% url 'about' %}" class="text-white text-decoration-none">Giới thiệu</a></li>
+                        <li><a href="{% url 'contact' %}" class="text-white text-decoration-none">Liên hệ</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4">
+                    <h5>Đăng ký nhận thông báo</h5>
+                    <p>Nhận thông tin cập nhật mới nhất về các tuyến xe buýt</p>
+                    <div class="input-group">
+                        <input type="email" class="form-control" placeholder="Email của bạn">
+                        <button class="btn btn-primary" type="button">Đăng ký</button>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-4" style="background-color: rgba(255,255,255,0.2);">
+            <div class="text-center">
+                <p class="mb-0">&copy; 2023 BusMap Gò Vấp. Tất cả quyền được bảo lưu.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
