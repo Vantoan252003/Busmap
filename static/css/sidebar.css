@@ -11,6 +11,37 @@ html, body {
     transition: margin-left 0.5s;
     z-index: 0;
 }
+#search-suggestions {
+    position: absolute;
+    background: white;
+    border: 1px solid #ccc;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    width: 100%;
+    display: none;
+}
+#search-suggestions div {
+    padding: 8px;
+    cursor: pointer;
+}
+#search-suggestions div:hover {
+    background-color: #f0f0f0;
+}
+.route-controls {
+    position: absolute;
+    top: 70px; 
+    right: 315px;  
+    z-index: 1000;
+}
+#fullscreen-button {
+    background: rgba(255, 255, 255, 0.8);
+    border: none;
+    padding: 5px;
+    border-radius: 10px;
+    font-size: 22px;
+    cursor: pointer;
+}
 
 .search-container {
     position: absolute;

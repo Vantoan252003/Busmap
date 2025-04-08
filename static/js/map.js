@@ -246,7 +246,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (searchMarker) map.removeLayer(searchMarker);
                 searchLocation = { lat: lat, lng: lng };
                 searchMarker = L.marker([lat, lng]).addTo(map)
-                    .bindPopup(`<b>Địa chỉ:</b> ${displayName}`).openPopup();
+                    .bindPopup(`<b>Địa chỉ:</b> ${displayName}</br>
+                         <button class="find-route" onclick="findRouteTo(${lat}, ${lng}, '${stop.Stop_Name}'); map.closePopup();">Tìm đường đến đây</button>`).openPopup(); 
                 map.setView([lat, lng], 16);
             } else {
                 alert('Không tìm thấy địa chỉ!');
