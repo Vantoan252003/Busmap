@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function () {
         uniqueRoutes.forEach(function (route) {
             var routeItem = document.createElement('div');
             routeItem.className = 'route-item';
-            routeItem.textContent = `Tuyến ${route}`;
+            routeItem.textContent = `${route}`;
             routeItem.addEventListener('click', function () {
                 map.eachLayer(function (layer) {
                     if (layer instanceof L.Marker) map.removeLayer(layer);
