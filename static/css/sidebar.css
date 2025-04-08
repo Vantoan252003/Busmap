@@ -106,16 +106,7 @@ body.sidebar-active #map {
     padding: 5px 15px;
 }
 
-.leaflet-control-fullscreen a {
-    background: #f50404 url(https://unpkg.com/leaflet.fullscreen@2.4.0/dist/fullscreen.png) no-repeat 50% 50%;
-    background-size: 10px 10px;
-}
 
-#fullscreen-button {
-    border-radius: 5px;
-    padding: 8px 15px;
-    transition: background-color 0.3s ease;
-}
 
 #fullscreen-button:hover {
     background-color: #0589fc;
@@ -148,5 +139,5 @@ body.sidebar-active #map {
 }
 
 .route-finder button:hover {
-    background-color: #28a745; /* Màu xanh đậm hơn khi hover */
+    background-color: #28a745;
 }
