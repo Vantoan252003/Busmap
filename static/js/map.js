@@ -90,6 +90,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Cập nhật marker khi bản đồ thay đổi (zoom hoặc di chuyển)
     map.on('moveend zoomend', addMarkers);
     addMarkers();
+
     // Hiển thị danh sách tuyến xe trong sidebar
     function populateRouteList() {
         var routeList = document.getElementById('route-list');
@@ -103,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function () {
         uniqueRoutes.forEach(function (route) {
             var routeItem = document.createElement('div');
             routeItem.className = 'route-item';
-            routeItem.textContent = `${route}`;
+            routeItem.textContent = `Tuyến ${route}`;
             routeItem.addEventListener('click', function () {
                 map.eachLayer(function (layer) {
                     if (layer instanceof L.Marker) map.removeLayer(layer);
@@ -246,8 +247,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (searchMarker) map.removeLayer(searchMarker);
                 searchLocation = { lat: lat, lng: lng };
                 searchMarker = L.marker([lat, lng]).addTo(map)
-                    .bindPopup(`<b>Địa chỉ:</b> ${displayName}</br>
-                         <button class="find-route" onclick="findRouteTo(${lat}, ${lng}, '${stop.Stop_Name}'); map.closePopup();">Tìm đường đến đây</button>`).openPopup(); 
+                    .bindPopup(`<b>Địa chỉ:</b> ${displayName}`).openPopup();
                 map.setView([lat, lng], 16);
             } else {
                 alert('Không tìm thấy địa chỉ!');
@@ -456,10 +456,16 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     };
 
-    // Toggle sidebar
     var sidebar = new bootstrap.Offcanvas(document.getElementById('sidebar'), { backdrop: false });
     document.getElementById('sidebar-toggle').addEventListener('click', function () {
         sidebar.toggle();
+        document.body.classList.toggle('sidebar-active');
+    });
+    document.getElementById('sidebar').addEventListener('shown.bs.offcanvas', function () {
+        document.body.classList.add('sidebar-active');
+    });
+    document.getElementById('sidebar').addEventListener('hidden.bs.offcanvas', function () {
+        document.body.classList.remove('sidebar-active');
     });
 
     // Gọi các hàm khởi tạo

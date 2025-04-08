@@ -11,37 +11,6 @@ html, body {
     transition: margin-left 0.5s;
     z-index: 0;
 }
-#search-suggestions {
-    position: absolute;
-    background: white;
-    border: 1px solid #ccc;
-    max-height: 200px;
-    overflow-y: auto;
-    z-index: 1000;
-    width: 100%;
-    display: none;
-}
-#search-suggestions div {
-    padding: 8px;
-    cursor: pointer;
-}
-#search-suggestions div:hover {
-    background-color: #f0f0f0;
-}
-.route-controls {
-    position: absolute;
-    top: 70px; 
-    right: 315px;  
-    z-index: 1000;
-}
-#fullscreen-button {
-    background: rgba(255, 255, 255, 0.8);
-    border: none;
-    padding: 5px;
-    border-radius: 10px;
-    font-size: 22px;
-    cursor: pointer;
-}
 
 .search-container {
     position: absolute;
@@ -249,46 +218,88 @@ body.sidebar-active #map {
     background-color: #0056b3;
 }
 
-/* Định dạng nút trong popup */
-.leaflet-popup-content button {
+/* Đảm bảo navbar luôn ở trên cùng */
+.navbar {
+    z-index: 1000;
+    padding: 5px 15px;
+    position: sticky;
+    top: 0;
+}
+
+.offcanvas {
+    width: 250px;
+    z-index: 999; 
+}
+#search-suggestions {
+    position: absolute;
+    background: white;
+    border: 1px solid #ccc;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    width: 100%;
+    display: none;
+}
+#search-suggestions div {
+    padding: 8px;
+    cursor: pointer;
+}
+#search-suggestions div:hover {
+    background-color: #f0f0f0;
+}
+.route-controls {
+    position: absolute;
+    top: 70px; 
+    right: 315px;  
+    z-index: 1000;
+}
+#fullscreen-button {
+    background: rgba(255, 255, 255, 0.8);
+    border: none;
+    padding: 5px;
+    border-radius: 10px;
+    font-size: 22px;
+    cursor: pointer;
+}
+body.sidebar-active #fullscreen-button {
+    display: none;
+}
+.select-stop, .find-route {
     display: inline-block;
+    padding: 8px 12px;
     margin: 5px 5px 0 0;
-    padding: 6px 12px;
-    font-size: 13px;
-    font-weight: 500;
     border: none;
     border-radius: 5px;
+    font-size: 14px;
+    font-weight: 500;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Nút "Chọn trạm này" */
-.leaflet-popup-content button.select-stop {
-    background-color: #28a745;
-    color: white;
-}
-
-.leaflet-popup-content button.select-stop:hover {
-    background-color: #218838;
-    transform: scale(1.05);
-}
-
-.leaflet-popup-content button.select-stop:active {
-    transform: scale(0.95);
-}
-
-/* Nút "Tìm đường đến đây" */
-.leaflet-popup-content button.find-route {
+.select-stop {
     background-color: #007bff;
     color: white;
 }
 
-.leaflet-popup-content button.find-route:hover {
+.select-stop:hover {
     background-color: #0056b3;
     transform: scale(1.05);
 }
 
-.leaflet-popup-content button.find-route:active {
+.select-stop:active {
+    transform: scale(0.95);
+}
+
+.find-route {
+    background-color: #28a745;
+    color: white;
+}
+
+.find-route:hover {
+    background-color: #218838;
+    transform: scale(1.05);
+}
+
+.find-route:active {
     transform: scale(0.95);
 }
