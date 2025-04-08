@@ -37,42 +37,69 @@ document.addEventListener('DOMContentLoaded', function () {
     var routingControl = null; // Lưu đối tượng định tuyến
     var selectedStops = []; // Lưu trữ hai trạm được chọn để tìm đường đi
 
-    // Thêm marker cho các trạm xe buýt
+    const markers = L.layerGroup().addTo(map); // Nhóm các marker để dễ quản lý
+    const ZOOM_THRESHOLD = 16; // Ngưỡng zoom để hiển thị marker
+
     function addMarkers() {
-        var bounds = L.latLngBounds();
-        stopsData.forEach(function (stop) {
+        markers.clearLayers(); // Xóa các marker cũ
+        const zoomLevel = map.getZoom();
+    
+        if (zoomLevel < ZOOM_THRESHOLD) return; // Không hiển thị marker nếu zoom nhỏ hơn ngưỡng
+    
+        stopsData.forEach(stop => {
             if (stop.Latitude && stop.Longitude && !isNaN(stop.Latitude) && !isNaN(stop.Longitude)) {
-                var popupContent = `
+                const lat = parseFloat(stop.Latitude);
+                const lon = parseFloat(stop.Longitude);
+                const popupContent = `
                     <b>Trạm:</b> ${stop.Stop_Name || 'Chưa có thông tin'}<br>
                     <b>Địa chỉ:</b> ${stop.Address || 'Chưa có thông tin'}<br>
                     <b>Số tuyến:</b> ${stop.Route_Number || 'Chưa có'}<br>
                     <b>Thông tin thêm:</b> ${stop.Additional_Info || 'Chưa có thông tin'}<br>
-                    <button onclick="selectStop(${stop.Latitude}, ${stop.Longitude}, '${stop.Stop_Name}')">Chọn trạm này</button>
-                    <button onclick="findRouteTo(${stop.Latitude}, ${stop.Longitude}, '${stop.Stop_Name}')">Tìm đường đến đây</button>
+                    <button class="select-stop" onclick="selectStop(${lat}, ${lon}, '${stop.Stop_Name}'); map.closePopup();">Chọn trạm này</button>
+                    <button class="find-route" onclick="findRouteTo(${lat}, ${lon}, '${stop.Stop_Name}'); map.closePopup();">Tìm đường đến đây</button>
                 `;
-                var marker = L.marker([parseFloat(stop.Latitude), parseFloat(stop.Longitude)], { icon: busIcon })
-                    .addTo(map)
-                    .bindPopup(popupContent);
-                bounds.extend([parseFloat(stop.Latitude), parseFloat(stop.Longitude)]);
-            } else {
-                console.warn(`Bỏ qua trạm ${stop.Stop_Name} do tọa độ không hợp lệ: Lat=${stop.Latitude}, Lon=${stop.Longitude}`);
+                L.marker([lat, lon], { icon: busIcon })
+                    .bindPopup(popupContent)
+                    .addTo(markers);
             }
         });
-        if (bounds.isValid()) {
-            map.fitBounds(bounds);
-        }
     }
 
+    function locateUser() {
+        if (!navigator.geolocation) {
+            alert('Trình duyệt không hỗ trợ định vị.');
+            return;
+        }
+
+        map.locate({ setView: true, enableHighAccuracy: true, maxZoom: 16, timeout: 10000 });
+
+        map.on('locationfound', e => {
+            userLocation = e.latlng;
+            L.marker(e.latlng).addTo(map).bindPopup('Bạn đang ở đây :)').openPopup();
+            L.circle(e.latlng, e.accuracy / 2, {
+                weight: 2,
+                color: 'red',
+                fillColor: 'red',
+                fillOpacity: 0.1
+            }).addTo(map);
+        });
+
+        map.on('locationerror', e => alert('Không thể lấy vị trí: ' + e.message));
+    }
+
+    // Cập nhật marker khi bản đồ thay đổi (zoom hoặc di chuyển)
+    map.on('moveend zoomend', addMarkers);
+    addMarkers();
     // Hiển thị danh sách tuyến xe trong sidebar
     function populateRouteList() {
         var routeList = document.getElementById('route-list');
         var uniqueRoutes = [...new Set(stopsData.map(stop => stop.Route_Number))].filter(route => route && route !== 'Unknown');
-
+    
         if (uniqueRoutes.length === 0) {
             routeList.innerHTML = '<p>Không có thông tin tuyến xe nào.</p>';
             return;
         }
-
+    
         uniqueRoutes.forEach(function (route) {
             var routeItem = document.createElement('div');
             routeItem.className = 'route-item';
@@ -86,8 +113,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     var popupContent = `
                         <b>Trạm:</b> ${stop.Stop_Name}<br>
                         <b>Số tuyến:</b> ${stop.Route_Number}<br>
-                        <button onclick="selectStop(${stop.Latitude}, ${stop.Longitude}, '${stop.Stop_Name}')">Chọn trạm này</button>
-                        <button onclick="findRouteTo(${stop.Latitude}, ${stop.Longitude}, '${stop.Stop_Name}')">Tìm đường đến đây</button>
+                        <button class="select-stop" onclick="selectStop(${stop.Latitude}, ${stop.Longitude}, '${stop.Stop_Name}'); map.closePopup();">Chọn trạm này</button>
+                        <button class="find-route" onclick="findRouteTo(${stop.Latitude}, ${stop.Longitude}, '${stop.Stop_Name}'); map.closePopup();">Tìm đường đến đây</button>
                     `;
                     L.marker([parseFloat(stop.Latitude), parseFloat(stop.Longitude)], { icon: busIcon })
                         .addTo(map)

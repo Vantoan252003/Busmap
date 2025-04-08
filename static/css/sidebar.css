@@ -106,13 +106,10 @@ body.sidebar-active #map {
     padding: 5px 15px;
 }
 
-
-
 #fullscreen-button:hover {
     background-color: #0589fc;
 }
 
-/* Thêm vào cuối file sidebar.css */
 .route-finder {
     background-color: #f8f9fa;
     padding: 15px;
@@ -140,4 +137,127 @@ body.sidebar-active #map {
 
 .route-finder button:hover {
     background-color: #28a745;
+}
+
+#clear-route {
+    background-color: #ff4d4d;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: white;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+#clear-route:hover {
+    background-color: #e60000;
+    transform: scale(1.05);
+}
+
+#clear-route:active {
+    transform: scale(0.95);
+}
+
+/* Tùy chỉnh bảng hiển thị các tuyến đường từ Leaflet Routing Machine */
+.leaflet-routing-container {
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    padding: 15px;
+    font-family: 'Arial', sans-serif;
+    max-width: 300px;
+    border: 1px solid #ddd;
+}
+
+.leaflet-routing-instruction {
+    color: #333;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 8px;
+}
+
+.leaflet-routing-instruction:last-child {
+    border-bottom: none;
+}
+
+.leaflet-routing-instruction strong {
+    color: #007bff;
+    font-weight: 600;
+}
+
+.leaflet-routing-container h2 {
+    font-size: 16px;
+    color: #444;
+    margin-bottom: 10px;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 5px;
+}
+
+.leaflet-routing-container .leaflet-routing-alt {
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 13px;
+    color: #555;
+}
+
+.leaflet-routing-collapse-btn {
+    background-color: #007bff;
+    color: white;
+    border-radius: 5px;
+    padding: 5px 10px;
+    font-size: 12px;
+    transition: background-color 0.3s ease;
+}
+
+.leaflet-routing-collapse-btn:hover {
+    background-color: #0056b3;
+}
+
+/* Định dạng nút trong popup */
+.leaflet-popup-content button {
+    display: inline-block;
+    margin: 5px 5px 0 0;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Nút "Chọn trạm này" */
+.leaflet-popup-content button.select-stop {
+    background-color: #28a745;
+    color: white;
+}
+
+.leaflet-popup-content button.select-stop:hover {
+    background-color: #218838;
+    transform: scale(1.05);
+}
+
+.leaflet-popup-content button.select-stop:active {
+    transform: scale(0.95);
+}
+
+/* Nút "Tìm đường đến đây" */
+.leaflet-popup-content button.find-route {
+    background-color: #007bff;
+    color: white;
+}
+
+.leaflet-popup-content button.find-route:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}
+
+.leaflet-popup-content button.find-route:active {
+    transform: scale(0.95);
 }
