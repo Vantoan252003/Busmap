@@ -409,16 +409,22 @@ document.addEventListener('DOMContentLoaded', function () {
     // Toàn màn hình
     window.toggleFullscreen = function () {
         var mapContainer = document.querySelector('.map-container');
+        var fullscreenButton = document.getElementById('fullscreen-button');
+        
         if (!document.fullscreenElement) {
             mapContainer.requestFullscreen().then(() => {
                 map.invalidateSize();
-                document.getElementById('fullscreen-button').textContent = '[ ]';
-            }).catch(err => alert('Không thể chuyển sang toàn màn hình: ' + err));
+                fullscreenButton.innerHTML = '<i class="fa fa-compress"></i>'; 
+            }).catch(err => {
+                alert('Không thể chuyển sang toàn màn hình: ' + err);
+            });
         } else {
             document.exitFullscreen().then(() => {
-                map.invalidateSize();
-                document.getElementById('fullscreen-button').textContent = '[ ]';
-            }).catch(err => console.error(err));
+                map.invalidateSize(); 
+                fullscreenButton.innerHTML = '<i class="fa fa-expand"></i>'; 
+            }).catch(err => {
+                console.error(err);
+            });
         }
     };
 
@@ -433,6 +439,6 @@ document.addEventListener('DOMContentLoaded', function () {
         addMarkers();
         populateRouteList();
     }
-
+    locateUser();
     window.locateUser = locateUser;
 });
