@@ -37,32 +37,34 @@ document.addEventListener('DOMContentLoaded', function () {
     var routingControl = null; // Lưu đối tượng định tuyến
     var selectedStops = []; // Lưu trữ hai trạm được chọn để tìm đường đi
 
-    // Thêm marker cho các trạm xe buýt
+    const markers = L.layerGroup().addTo(map); // Nhóm các marker để dễ quản lý
+    const ZOOM_THRESHOLD = 17; // Ngưỡng zoom để hiển thị marker
+
     function addMarkers() {
-        var bounds = L.latLngBounds();
-        stopsData.forEach(function (stop) {
+        markers.clearLayers(); // Xóa các marker cũ
+        const zoomLevel = map.getZoom();
+
+        if (zoomLevel < ZOOM_THRESHOLD) return; // Không hiển thị marker nếu zoom nhỏ hơn ngưỡng
+
+        stopsData.forEach(stop => {
             if (stop.Latitude && stop.Longitude && !isNaN(stop.Latitude) && !isNaN(stop.Longitude)) {
-                var popupContent = `
+                const lat = parseFloat(stop.Latitude);
+                const lon = parseFloat(stop.Longitude);
+                const popupContent = `
                     <b>Trạm:</b> ${stop.Stop_Name || 'Chưa có thông tin'}<br>
                     <b>Địa chỉ:</b> ${stop.Address || 'Chưa có thông tin'}<br>
                     <b>Số tuyến:</b> ${stop.Route_Number || 'Chưa có'}<br>
                     <b>Thông tin thêm:</b> ${stop.Additional_Info || 'Chưa có thông tin'}<br>
                     <button onclick="selectStop(${stop.Latitude}, ${stop.Longitude}, '${stop.Stop_Name}')">Chọn trạm này</button>
                     <button onclick="findRouteTo(${stop.Latitude}, ${stop.Longitude}, '${stop.Stop_Name}')">Tìm đường đến đây</button>
+
                 `;
-                var marker = L.marker([parseFloat(stop.Latitude), parseFloat(stop.Longitude)], { icon: busIcon })
-                    .addTo(map)
-                    .bindPopup(popupContent);
-                bounds.extend([parseFloat(stop.Latitude), parseFloat(stop.Longitude)]);
-            } else {
-                console.warn(`Bỏ qua trạm ${stop.Stop_Name} do tọa độ không hợp lệ: Lat=${stop.Latitude}, Lon=${stop.Longitude}`);
+                L.marker([lat, lon], { icon: busIcon })
+                    .bindPopup(popupContent)
+                    .addTo(markers);
             }
         });
-        if (bounds.isValid()) {
-            map.fitBounds(bounds);
-        }
     }
-
     // Hiển thị danh sách tuyến xe trong sidebar
     function populateRouteList() {
         var routeList = document.getElementById('route-list');
@@ -409,16 +411,22 @@ document.addEventListener('DOMContentLoaded', function () {
     // Toàn màn hình
     window.toggleFullscreen = function () {
         var mapContainer = document.querySelector('.map-container');
+        var fullscreenButton = document.getElementById('fullscreen-button');
+        
         if (!document.fullscreenElement) {
             mapContainer.requestFullscreen().then(() => {
                 map.invalidateSize();
-                document.getElementById('fullscreen-button').textContent = '[ ]';
-            }).catch(err => alert('Không thể chuyển sang toàn màn hình: ' + err));
+                fullscreenButton.innerHTML = '<i class="fa fa-compress"></i>'; 
+            }).catch(err => {
+                alert('Không thể chuyển sang toàn màn hình: ' + err);
+            });
         } else {
             document.exitFullscreen().then(() => {
-                map.invalidateSize();
-                document.getElementById('fullscreen-button').textContent = '[ ]';
-            }).catch(err => console.error(err));
+                map.invalidateSize(); 
+                fullscreenButton.innerHTML = '<i class="fa fa-expand"></i>'; 
+            }).catch(err => {
+                console.error(err);
+            });
         }
     };
 
@@ -433,6 +441,6 @@ document.addEventListener('DOMContentLoaded', function () {
         addMarkers();
         populateRouteList();
     }
-
+    locateUser();
     window.locateUser = locateUser;
 });
