@@ -264,6 +264,9 @@ body.sidebar-active #map {
 body.sidebar-active #fullscreen-button {
     display: none;
 }
+body.sidebar-active #nearest-stop {
+    display: none;
+}
 .select-stop, .find-route {
     display: inline-block;
     padding: 8px 12px;

@@ -1,22 +1,32 @@
 from django.shortcuts import render
-import pandas as pd
 import json
+from .models import BusStop
 
 def map_view(request):
-    # Đọc dữ liệu từ file CSV
-    data = pd.read_csv('bus_stops_govap.csv')
+    # Lấy dữ liệu từ database thay vì từ file CSV
+    bus_stops = BusStop.objects.all()
     
-    # Thay thế các giá trị NaN bằng chuỗi rỗng
-    data = data.fillna('')
-    
-    # Chuyển dữ liệu thành định dạng JSON để dùng trong JavaScript
-    stops_data = data.to_dict(orient='records')
+    # Chuyển đổi queryset thành list dictionary để dễ dàng serialize thành JSON
+    stops_data = []
+    for stop in bus_stops:
+        stops_data.append({
+            'Stop_ID': stop.stop_id,
+            'Stop_Name': stop.stop_name,
+            'Latitude': stop.latitude,
+            'Longitude': stop.longitude,
+            'Route_Number': stop.route_number,
+            'Address': stop.address if stop.address else '',
+            'Additional_Info': stop.additional_info if stop.additional_info else ''
+        })
     
     # Truyền dữ liệu vào template
     return render(request, 'busmap_app/map.html', {'stops_data': json.dumps(stops_data)})
-def home (request):
+
+def home(request):
     return render(request, 'busmap_app/home.html')
-def contact (request):
+
+def contact(request):
     return render(request, 'busmap_app/contact.html')
-def about (request):
+
+def about(request):
     return render(request, 'busmap_app/about.html')

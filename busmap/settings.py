@@ -76,8 +76,12 @@ WSGI_APPLICATION = 'busmap.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'busmap_db',
+        'USER': 'postgres',  # Thay thế bằng username PostgreSQL của bạn
+        'PASSWORD': 'Vantoan@123',  # Thay thế bằng password PostgreSQL của bạn
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 

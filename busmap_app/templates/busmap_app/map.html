@@ -46,13 +46,15 @@
             <div id="search-suggestions" class="suggestions"></div>
         </div>
         <button id="sidebar-toggle">></button>
+    
         <div class="route-controls">
             <button id="clear-route" class="btn btn-danger" style="display: none;">Xóa đường đi</button>
         </div>
         <button id="fullscreen-button" style="position: absolute; top: 130px; left: 12px; z-index: 1001;" onclick="toggleFullscreen()">
             <i class="fa fa-expand"></i>
         </button>
-
+        <button id="nearest-stop" style="position: absolute; margin-top: 4%; margin-left: 5%; z-index: 1;" class="btn btn-primary" onclick="findNearestStop()">Tìm trạm gần nhất</button>
+        <button id="nearest-stop" style="position: absolute; margin-top: 1%; margin-left: 5%; z-index: 1;" class="btn btn-primary" onclick="locateUser()">Vị trí tôi</button>
         <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebar" aria-labelledby="sidebarLabel">
             <div class="offcanvas-header">
                 <h5 class="offcanvas-title" id="sidebarLabel">Danh sách tuyến xe</h5>
@@ -60,7 +62,6 @@
             </div>
             <div class="offcanvas-body">
                 <div id="route-list"></div>
-                <button class="btn btn-primary mt-3 w-100" onclick="locateUser()">Tìm vị trí của tôi</button>
                 <div class="route-finder mt-3">
                     <h6>Tìm đường</h6>
                     <div class="position-relative">
